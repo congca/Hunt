@@ -75,7 +75,7 @@ public abstract class Test {
 
         ProgressHandler progressHandler = new ProgressHandler();
 
-        String task = "Importing vcf files";
+        String task = "Importing variants";
         progressHandler.start(task);
 
         try {

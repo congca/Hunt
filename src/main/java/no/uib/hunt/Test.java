@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import no.uib.hunt.data.VariantPool;
 import no.uib.hunt.model.Variant;
 import no.uib.hunt.utils.ProgressHandler;
@@ -26,6 +28,10 @@ public abstract class Test {
      * The folder containing the vcf files.
      */
     public static final String vcfFolder = "/mnt/archive/ROTTERDAM1/genotypes-base/imputed/all/";
+    /**
+     * The number of sample values to test.
+     */
+    public static final int nSamples = 10;
     /**
      * The genotype provider to use to query the vcf files.
      */
@@ -164,7 +170,7 @@ public abstract class Test {
      */
     public void queryVariantSingleThread(final Variant variant) {
 
-        List<String> samples = genotypeProvider.getSamples();
+        List<String> samples = sample(genotypeProvider.getSamples());
 
         samples.stream()
                 .forEach(sample -> genotypeProvider.getGenotype(sample, variant));
@@ -178,7 +184,7 @@ public abstract class Test {
      */
     public void queryVariantThreadPerSample(final Variant variant) {
 
-        List<String> samples = genotypeProvider.getSamples();
+        List<String> samples = sample(genotypeProvider.getSamples());
 
         samples.parallelStream()
                 .forEach(sample -> genotypeProvider.getGenotype(sample, variant));
@@ -192,8 +198,8 @@ public abstract class Test {
      */
     public void queryVariantsSingleThread(ArrayList<Variant> variants) {
 
-        List<String> samples = genotypeProvider.getSamples();
-
+        List<String> samples = sample(genotypeProvider.getSamples());
+        
         variants.stream()
                 .forEach(variant -> samples.stream()
                 .forEach(sample -> genotypeProvider.getGenotype(sample, variant)));
@@ -207,7 +213,7 @@ public abstract class Test {
      */
     public void queryVariantsThreadPerVariant(ArrayList<Variant> variants) {
 
-        List<String> samples = genotypeProvider.getSamples();
+        List<String> samples = sample(genotypeProvider.getSamples());
 
         variants.parallelStream()
                 .forEach(variant -> samples.stream()
@@ -222,7 +228,7 @@ public abstract class Test {
      */
     public void queryVariantsThreadPerSample(ArrayList<Variant> variants) {
 
-        List<String> samples = genotypeProvider.getSamples();
+        List<String> samples = sample(genotypeProvider.getSamples());
 
         variants.stream()
                 .forEach(variant -> samples.parallelStream()
@@ -257,6 +263,22 @@ public abstract class Test {
      */
     public void close() {
         genotypeProvider.close();
+    }
+    
+    /**
+     * Returns a list of length nSamples of sampled values from the given list.
+     * 
+     * @param originalList the original list
+     * 
+     * @return a list of length nSamples of sampled values from the given list
+     */
+    public List<String> sample(List<String> originalList) {
+        
+        return IntStream.range(0, nSamples)
+                .map(i -> (int) Math.floor((originalList.size() - 1) * Math.random()))
+                .mapToObj(i -> originalList.get(i))
+                .collect(Collectors.toList());
+        
     }
  
 }

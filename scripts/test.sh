@@ -8,7 +8,7 @@
 ## Parameters
 
 # Repository folder
-repo=/mnt/work/marc/tools/hunt
+repo=/mnt/work/marc/tools/Hunt
 
 # Number of threads
 nThreads=16

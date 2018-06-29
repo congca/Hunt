@@ -1,5 +1,6 @@
 package no.uib.hunt.tests;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,11 +28,16 @@ public class MultipleVcfTest extends Test {
     public static void main(String[] args) {
 
         try {
+            
+            ProgressHandler.logFile = new File("MultipleVcfTest.log");
+            ProgressHandler.setUpLog();
 
             MultipleVcfTest test = new MultipleVcfTest();
             test.initiatlize();
             test.runTests();
             test.close();
+            
+            ProgressHandler.close();
 
         } catch (Throwable e) {
             e.printStackTrace();
@@ -73,7 +79,8 @@ public class MultipleVcfTest extends Test {
 
             progressHandler.writeLine(task + " failed.");
 
-            throw (throwable);
+            throwable.printStackTrace();
+            ProgressHandler.writeToLog(throwable.toString());
 
         }
 
@@ -100,7 +107,8 @@ public class MultipleVcfTest extends Test {
 
             progressHandler.writeLine(task + " failed.");
 
-            throw (throwable);
+            throwable.printStackTrace();
+            ProgressHandler.writeToLog(throwable.toString());
 
         }
     }
@@ -128,7 +136,8 @@ public class MultipleVcfTest extends Test {
 
             progressHandler.writeLine(task + " failed.");
 
-            throw (throwable);
+            throwable.printStackTrace();
+            ProgressHandler.writeToLog(throwable.toString());
 
         }
 
@@ -146,7 +155,8 @@ public class MultipleVcfTest extends Test {
 
             progressHandler.writeLine(task + " failed.");
 
-            throw (throwable);
+            throwable.printStackTrace();
+            ProgressHandler.writeToLog(throwable.toString());
 
         }
 
@@ -164,7 +174,8 @@ public class MultipleVcfTest extends Test {
 
             progressHandler.writeLine(task + " failed.");
 
-            throw (throwable);
+            throwable.printStackTrace();
+            ProgressHandler.writeToLog(throwable.toString());
 
         }
     }

@@ -1,7 +1,12 @@
 package no.uib.hunt.utils;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.time.Instant;
 import java.util.HashMap;
+import java.util.concurrent.Semaphore;
 
 /**
  * this class displays feedback on the progress in command line.
@@ -9,6 +14,46 @@ import java.util.HashMap;
  * @author Marc Vaudel
  */
 public class ProgressHandler {
+
+    /**
+     * The file where to log output.
+     */
+    public static File logFile = new File("log.txt");
+    /**
+     * Mutex for log writing.
+     */
+    private static Semaphore mutex = new Semaphore(1);
+    /**
+     * Writer to write to the file.
+     */
+    public static BufferedWriter bw;
+
+    /**
+     * Sets up the log.
+     *
+     * @throws IOException exception thrown if an error occurs while writing to
+     * the log file
+     */
+    public static void setUpLog() throws IOException {
+
+        bw = new BufferedWriter(new FileWriter(logFile));
+        bw.write(Instant.now() + " HUNT TEST LOG");
+        bw.newLine();
+        bw.newLine();
+
+    }
+
+    /**
+     * Closes the log.
+     *
+     * @throws IOException exception thrown if an error occurs while closing the
+     * log file
+     */
+    public static void close() throws IOException {
+
+        bw.close();
+
+    }
 
     /**
      * Map to keep track of the tasks start and end time.
@@ -24,21 +69,21 @@ public class ProgressHandler {
 
     /**
      * New task started.
-     * 
+     *
      * @param taskName the name of the task.
      */
     public void start(String taskName) {
 
         Instant t = Instant.now();
-        
+
         writeLine(t, taskName);
         startTime.put(taskName, t);
-        
+
     }
 
     /**
      * Task ended.
-     * 
+     *
      * @param taskName the name of the task
      */
     public void end(String taskName) {
@@ -91,14 +136,14 @@ public class ProgressHandler {
                 }
             }
         }
-        
+
         writeLine(t, text.toString());
 
     }
 
     /**
      * Writes a new line to the output.
-     * 
+     *
      * @param t the time to write
      * @param text the text to write
      */
@@ -107,18 +152,42 @@ public class ProgressHandler {
         String line = String.join(": ", t.toString(), text);
 
         System.out.println(line);
+        writeToLog(line);
 
     }
 
     /**
-     * Writes a new line to the output with the current time. 
-     * 
+     * Writes a new line to the output with the current time.
+     *
      * @param text the text to write
      */
     public void writeLine(String text) {
 
         writeLine(Instant.now(), text);
 
+    }
+
+    /**
+     * Writes the given string to the log file.
+     *
+     * @param log the string to log
+     */
+    public static void writeToLog(String log) {
+
+        try {
+
+            mutex.acquire();
+
+            bw.write(log);
+            bw.newLine();
+
+            mutex.release();
+
+        } catch (Exception e) {
+
+            throw new RuntimeException(e);
+
+        }
     }
 
 }

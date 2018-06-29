@@ -1,5 +1,6 @@
 package no.uib.hunt.tests;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,11 +24,16 @@ public class SingleVcfTest extends Test {
     public static void main(String[] args) {
 
         try {
+            
+            ProgressHandler.logFile = new File("SingleVcfTest.log");
+            ProgressHandler.setUpLog();
 
             SingleVcfTest test = new SingleVcfTest(args[0]);
             test.initiatlize();
             test.runTests();
             test.close();
+            
+            ProgressHandler.close();
 
         } catch (Throwable e) {
             e.printStackTrace();
@@ -78,9 +84,9 @@ public class SingleVcfTest extends Test {
 
             progressHandler.writeLine(task + " failed.");
 
-            throw (throwable);
+            throwable.printStackTrace();
+            ProgressHandler.writeToLog(throwable.toString());
 
         }
     }
-
 }

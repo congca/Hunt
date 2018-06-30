@@ -28,7 +28,7 @@ public abstract class Test {
     /**
      * The folder containing the vcf files.
      */
-    public static final String vcfFolder = "/media/local-disk2/marc/tmp/";
+    public static final String vcfFolder = "/mnt/archive/ROTTERDAM1/genotypes-base/imputed/all/";
     /**
      * The number of sample values to test.
      */

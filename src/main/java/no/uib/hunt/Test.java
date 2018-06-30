@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Spliterator;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import no.uib.hunt.data.VariantPool;
@@ -36,16 +37,16 @@ public abstract class Test {
      * The genotype provider to use to query the vcf files.
      */
     protected final GenotypeProvider genotypeProvider;
-    
+
     /**
      * Constructor.
-     * 
+     *
      * @param genotypeProvider a genotype provider.
      */
     public Test(GenotypeProvider genotypeProvider) {
-        
+
         this.genotypeProvider = genotypeProvider;
-        
+
     }
 
     /**
@@ -186,9 +187,21 @@ public abstract class Test {
 
         List<String> samples = sample(genotypeProvider.getSamples());
 
-        samples.parallelStream()
-                .forEach(sample -> genotypeProvider.getGenotype(sample, variant));
+        Spliterator<String> mainIt = samples.spliterator();
 
+        List<Spliterator<String>> its = getSampleIterators(mainIt);
+        its.parallelStream().forEach(it -> {
+
+            GenotypeProvider threadGenotypeProvider = new GenotypeProvider();
+            Arrays.stream(chromosomes)
+                    .forEach(chr -> threadGenotypeProvider.addVcfFile(
+                    chr,
+                    getVcfFilePath(chr),
+                    getIndexFilePath(chr)));
+
+            it.forEachRemaining(sample -> threadGenotypeProvider.getGenotype(sample, variant));
+
+        });
     }
 
     /**
@@ -199,7 +212,7 @@ public abstract class Test {
     public void queryVariantsSingleThread(ArrayList<Variant> variants) {
 
         List<String> samples = sample(genotypeProvider.getSamples());
-        
+
         variants.stream()
                 .forEach(variant -> samples.stream()
                 .forEach(sample -> genotypeProvider.getGenotype(sample, variant)));
@@ -215,9 +228,22 @@ public abstract class Test {
 
         List<String> samples = sample(genotypeProvider.getSamples());
 
-        variants.parallelStream()
-                .forEach(variant -> samples.stream()
-                .forEach(sample -> genotypeProvider.getGenotype(sample, variant)));
+        Spliterator<Variant> mainIt = variants.spliterator();
+
+        List<Spliterator<Variant>> its = getVariantIterators(mainIt);
+        its.parallelStream().forEach(it -> {
+
+            GenotypeProvider threadGenotypeProvider = new GenotypeProvider();
+            Arrays.stream(chromosomes)
+                    .forEach(chr -> threadGenotypeProvider.addVcfFile(
+                    chr,
+                    getVcfFilePath(chr),
+                    getIndexFilePath(chr)));
+
+            it.forEachRemaining(variant -> samples.stream()
+                    .forEach(sample -> threadGenotypeProvider.getGenotype(sample, variant)));
+
+        });
 
     }
 
@@ -230,9 +256,22 @@ public abstract class Test {
 
         List<String> samples = sample(genotypeProvider.getSamples());
 
-        variants.stream()
-                .forEach(variant -> samples.parallelStream()
-                .forEach(sample -> genotypeProvider.getGenotype(sample, variant)));
+        Spliterator<String> mainIt = samples.spliterator();
+
+        List<Spliterator<String>> its = getSampleIterators(mainIt);
+        its.parallelStream().forEach(it -> {
+
+            GenotypeProvider threadGenotypeProvider = new GenotypeProvider();
+            Arrays.stream(chromosomes)
+                    .forEach(chr -> threadGenotypeProvider.addVcfFile(
+                    chr,
+                    getVcfFilePath(chr),
+                    getIndexFilePath(chr)));
+
+            it.forEachRemaining(sample -> variants.stream()
+                    .forEach(variant -> threadGenotypeProvider.getGenotype(sample, variant)));
+
+        });
 
     }
 
@@ -257,28 +296,103 @@ public abstract class Test {
     public static File getIndexFilePath(String chromosome) {
         return new File(String.join("", vcfFolder, chromosome, ".vcf.gz.tbi"));
     }
-    
+
     /**
      * Closes the vcf files.
      */
     public void close() {
         genotypeProvider.close();
     }
-    
+
     /**
      * Returns a list of length nSamples of sampled values from the given list.
-     * 
+     *
      * @param originalList the original list
-     * 
+     *
      * @return a list of length nSamples of sampled values from the given list
      */
     public List<String> sample(List<String> originalList) {
-        
+
         return IntStream.range(0, nSamples)
                 .map(i -> (int) Math.floor((originalList.size() - 1) * Math.random()))
                 .mapToObj(i -> originalList.get(i))
                 .collect(Collectors.toList());
-        
+
     }
- 
+
+    /**
+     * Returns a list of iterators corresponding to an attempt at splitting this
+     * iterator in 16.
+     *
+     * @param iterator the original iterator
+     *
+     * @return a list of iterators.
+     */
+    private List<Spliterator<String>> getSampleIterators(Spliterator<String> iterator) {
+
+        List<Spliterator<String>> iteratorList = new ArrayList<>(1);
+        iteratorList.add(iterator);
+
+        for (int i = 0; i < 4; i++) {
+
+            List<Spliterator<String>> newList = new ArrayList<>(2 * iteratorList.size());
+
+            for (Spliterator<String> it : iteratorList) {
+
+                newList.add(it);
+
+                Spliterator<String> newIt = it.trySplit();
+
+                if (newIt != null) {
+
+                    newList.add(newIt);
+
+                }
+            }
+
+            iteratorList = newList;
+
+        }
+
+        return iteratorList;
+
+    }
+
+    /**
+     * Returns a list of iterators corresponding to an attempt at splitting this
+     * iterator in 16.
+     *
+     * @param iterator the original iterator
+     *
+     * @return a list of iterators.
+     */
+    private List<Spliterator<Variant>> getVariantIterators(Spliterator<Variant> iterator) {
+
+        List<Spliterator<Variant>> iteratorList = new ArrayList<>(1);
+        iteratorList.add(iterator);
+
+        for (int i = 0; i < 4; i++) {
+
+            List<Spliterator<Variant>> newList = new ArrayList<>(2 * iteratorList.size());
+
+            for (Spliterator<Variant> it : iteratorList) {
+
+                newList.add(it);
+
+                Spliterator<Variant> newIt = it.trySplit();
+
+                if (newIt != null) {
+
+                    newList.add(newIt);
+
+                }
+            }
+
+            iteratorList = newList;
+
+        }
+
+        return iteratorList;
+
+    }
 }

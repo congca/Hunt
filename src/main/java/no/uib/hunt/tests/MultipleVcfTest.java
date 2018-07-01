@@ -88,9 +88,7 @@ public class MultipleVcfTest extends Test {
                 .collect(Collectors.toMap(
                         variant -> variant.rsId,
                         Function.identity(),
-                        (a, b) -> {
-                            throw new IllegalArgumentException("Non-unique rsid " + a.rsId);
-                        },
+                        (a, b) -> a,
                         TreeMap::new));
 
         task = "Testing all variants";

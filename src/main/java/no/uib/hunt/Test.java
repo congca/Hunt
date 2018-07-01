@@ -34,6 +34,10 @@ public abstract class Test {
      */
     public static final int nSamples = 10;
     /**
+     * Number of split to use for the iterators. The number of resulting threads is 2^nSplit.
+     */
+    public static final int nSplit = 5;
+    /**
      * The genotype provider to use to query the vcf files.
      */
     protected final GenotypeProvider genotypeProvider;
@@ -333,7 +337,7 @@ public abstract class Test {
         List<Spliterator<String>> iteratorList = new ArrayList<>(1);
         iteratorList.add(iterator);
 
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < nSplit; i++) {
 
             List<Spliterator<String>> newList = new ArrayList<>(2 * iteratorList.size());
 
@@ -371,7 +375,7 @@ public abstract class Test {
         List<Spliterator<Variant>> iteratorList = new ArrayList<>(1);
         iteratorList.add(iterator);
 
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < nSplit; i++) {
 
             List<Spliterator<Variant>> newList = new ArrayList<>(2 * iteratorList.size());
 

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -142,10 +143,10 @@ public class MultipleVcfTest extends Test {
         progressHandler.start(task);
 
         try {
-
+            
             variantsMap.values().stream()
                     .forEach(variant -> queryVariantThreadPerSample(variant));
-
+            
             progressHandler.end(task);
 
         } catch (Throwable throwable) {
@@ -161,9 +162,11 @@ public class MultipleVcfTest extends Test {
         progressHandler.start(task);
 
         try {
-
-            variantsMap.values().parallelStream()
-                    .forEach(variant -> queryVariantSingleThread(variant));
+            
+            ArrayList<Variant> variantList = variantsMap.values().stream()
+                    .collect(Collectors.toCollection(ArrayList::new));
+            
+            queryVariantsThreadPerVariant(variantList);
 
             progressHandler.end(task);
 

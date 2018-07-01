@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Spliterator;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import no.uib.hunt.data.VariantPool;
@@ -248,7 +249,6 @@ public abstract class Test {
                     .forEach(sample -> threadGenotypeProvider.getGenotype(sample, variant)));
 
         });
-
     }
 
     /**
